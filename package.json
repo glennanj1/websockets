@@ -1,0 +1,18 @@
+{
+  "name": "rusttcp",
+  "version": "1.0.0",
+  "description": "client to communicate with rust rcon ",
+  "main": "socket.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "websocket"
+  ],
+  "author": "john glennan",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "ws": "^8.4.0"
+  }
+}
