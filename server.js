@@ -1,4 +1,3 @@
-require('dotenv').config()
 const express = require('express');
 const cors = require('cors')
 const passport = require('passport');
@@ -9,6 +8,53 @@ const SteamStrategy = passportSteam.Strategy;
 const messageToServer = require('./socket.js')
 const bodyParser = require("body-parser")
 const cookieParser = require("cookie-parser")
+
+//mongodb
+const mongoose = require("mongoose")
+const url = process.env.DB_URL
+const connect = mongoose.connect(url, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useCreateIndex: true,
+})
+connect
+  .then(db => {
+    console.log("connected to db")
+  })
+  .catch(err => {
+    console.log(err)
+  })
+
+//require jwt
+const jwt = require("jsonwebtoken")
+
+//cookie options
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  // Since localhost is not having https protocol,
+  // secure cookies do not work correctly (in postman)
+  secure: false,
+  signed: true,
+  maxAge: eval(process.env.REFRESH_TOKEN_EXPIRY) * 1000,
+  sameSite: "none",
+}
+
+//get token and refresh token logic
+
+const getToken = user => {
+  return jwt.sign(user, process.env.JWT_SECRET, {
+    expiresIn: eval(process.env.SESSION_EXPIRY),
+  })
+}
+
+const getRefreshToken = user => {
+  const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: eval(process.env.REFRESH_TOKEN_EXPIRY),
+  })
+  return refreshToken
+}
+
+const verifyUser = passport.authenticate("jwt", { session: false })
 
 if (process.env.NODE_ENV !== "production") {
   // Load environment variables from .env file in non prod environments
@@ -72,6 +118,8 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+
+
 // Routes
 
 //index
@@ -96,7 +144,7 @@ app.get('/api/auth/steam/return', passport.authenticate('steam', {failureRedirec
 //log user out
 app.get('/logout', function(req, res){
   req.logout();
-  res.redirect('http://localhost:3000/');
+  res.redirect('/');
 });
 
 //call websocket still debugging this
